@@ -29,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ContextConfiguration(classes = {TestDataSourceConfig.class, MyWebAppInit.class, WebConfig.class})
 @WebAppConfiguration
 @Sql(scripts = "classpath:test.sql", config = @SqlConfig(encoding = "UTF-8"))
-public class GetShipTest {
+public class  GetShipTest {
 
     private WebApplicationContext context;
     private MockMvc mockMvc;
