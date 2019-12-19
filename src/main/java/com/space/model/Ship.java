@@ -1,13 +1,10 @@
 package com.space.model;
 
-import org.springframework.lang.NonNull;
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.Objects;
-
 
 @Table(name = "ship")
 @Entity
@@ -37,7 +34,7 @@ public class Ship {
 
 
     @Column(name = "prodDate")
-    @Temporal(TemporalType.DATE)
+    @Temporal(TemporalType.TIMESTAMP)
     private Date prodDate;
 
 
@@ -64,12 +61,11 @@ public class Ship {
         this.id = id;
     }
 
-
     public String getName() {
         return name;
     }
 
-    public void setName(@NonNull String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
@@ -90,37 +86,34 @@ public class Ship {
     }
 
     public Date getProdDate() {
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTime(prodDate);
-        calendar.set(Calendar.MONTH, 0);
-        calendar.set(Calendar.DATE, 1);
-        return calendar.getTime();
+        return prodDate;
     }
 
-    public void setProdDate(@NonNull Date prodDate) {
-        this.prodDate = prodDate;
+    public void setProdDate(Date prodDate) {
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(prodDate.getTime());
+        calendar.set(Calendar.MONTH, 0);
+        calendar.set(Calendar.DATE, 1);
+        this.prodDate = calendar.getTime();
     }
 
     public Boolean getUsed() {
-        if (isUsed == null) {
-            return false;
-        }
         return isUsed;
     }
 
     public void setUsed(Boolean used) {
+        if (used == null) {
+            isUsed = false;
+        }
         isUsed = used;
     }
 
     public Double getSpeed() {
-        if (speed == null) {
-            this.speed = 0.0;
-        }
-        return Math.floor(speed * 100.0) / 100.0;
+        return speed;
     }
 
-    public void setSpeed(@NonNull Double speed) {
-        this.speed = speed;
+    public void setSpeed(Double speed) {
+        this.speed = Math.floor(speed * 100.0) / 100.0;
     }
 
     public Integer getCrewSize() {
@@ -132,44 +125,22 @@ public class Ship {
     }
 
     public Double getRating() {
-        return calcRating();
+        return rating;
     }
 
     // logic
     private Double calcRating() {
-        if (isUsed == null) {
-            isUsed = false;
-        }
         double k = isUsed ? 0.5 : 1;
         Calendar calendar = Calendar.getInstance();
-        calendar.setTime(prodDate);
+        calendar.setTimeInMillis(prodDate.getTime());
+        calendar.set(Calendar.MONTH, 0);
+        calendar.set(Calendar.DATE, 1);
         this.rating = (80 * speed * k) / ((CURRENT_YEAR - calendar.get(Calendar.YEAR)) + 1);
         return Math.round(rating * 100.0) / 100.0;
+
     }
 
-
-    public void setRating(Double rating) {
-        this.rating = rating;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Ship ship1 = (Ship) o;
-        return id.equals(ship1.id) &&
-                name.equals(ship1.name) &&
-                planet.equals(ship1.planet) &&
-                shipType == ship1.shipType &&
-                prodDate.equals(ship1.prodDate) &&
-                isUsed.equals(ship1.isUsed) &&
-                speed.equals(ship1.speed) &&
-                crewSize.equals(ship1.crewSize) &&
-                rating.equals(ship1.rating);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, name, planet, shipType, prodDate, isUsed, speed, crewSize, rating);
+    public void setRating() {
+        this.rating = calcRating();
     }
 }
