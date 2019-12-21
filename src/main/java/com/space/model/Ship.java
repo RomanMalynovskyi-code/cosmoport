@@ -9,7 +9,7 @@ import java.util.Date;
 
 @Table(name = "ship")
 @Entity
-public class Ship implements Serializable {
+public class Ship{
     public static final Integer CURRENT_YEAR = 3019;
 
     public Ship() {

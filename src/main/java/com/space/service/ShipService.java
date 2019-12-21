@@ -3,10 +3,7 @@ package com.space.service;
 import com.space.model.Ship;
 import com.space.model.ShipType;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-
-import java.util.List;
 
 public interface ShipService {
 
@@ -18,10 +15,12 @@ public interface ShipService {
 
     Ship createShip(Ship ship);
 
-    Integer getShipCount();
+    Integer getShipCount(String name, String planet, ShipType shipType, Long after, Long before, Boolean isUsed,
+                         Double minSpeed, Double maxSpeed, Integer minCrewSize, Integer maxCrewSize,
+                         Double minRating, Double maxRating);
 
     Page<Ship> getAllShips(String name, String planet, ShipType shipType, Long after, Long before,
-                           Boolean isUsed, Double minSpeed, Double maxSpeed,
-                           Integer minCrewSize, Integer maxCrewSize, Integer minRating, Integer maxRating,
+                           Boolean isUsed, Double minSpeed, Double maxSpeed, Integer minCrewSize, Integer maxCrewSize,
+                           Double minRating, Double maxRating,
                            Integer pageNumber, Integer pageSize, Sort sort);
 }

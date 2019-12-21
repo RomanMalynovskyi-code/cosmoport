@@ -35,10 +35,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebAppConfiguration
 @Sql(scripts = "classpath:test.sql", config = @SqlConfig(encoding = "UTF-8"))
 public class GetAllTest {
-
     private WebApplicationContext context;
     private MockMvc mockMvc;
-
     private TestsHelper testsHelper = new TestsHelper();
     private ObjectMapper mapper = new ObjectMapper();
     private TypeReference<List<ShipInfoTest>> typeReference = new TypeReference<List<ShipInfoTest>>() {
@@ -117,6 +115,7 @@ public class GetAllTest {
                         testsHelper.getShipInfosByAfter(32503672800000L,
                                 testsHelper.getShipInfosByBefore(32850741600000L,
                                         testsHelper.getAllShips()))));
+
 
         assertTrue("Возвращается не правильный результат при запросе GET /rest/ships с параметрами shipType, after и before.", actual.equals(expected));
     }

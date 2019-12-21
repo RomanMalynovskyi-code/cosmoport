@@ -25,9 +25,6 @@ public class ShipController {
     public ResponseEntity<List<Ship>> getAllShips(
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "planet", required = false) String planet,
-            @RequestParam(value = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
-            @RequestParam(value = "pageSize", required = false, defaultValue = "3") Integer pageSize,
-            @RequestParam(value = "order", required = false, defaultValue = "ID") ShipOrder shipOrder,
             @RequestParam(value = "shipType", required = false) ShipType shipType,
             @RequestParam(value = "after", required = false) Long after,
             @RequestParam(value = "before", required = false) Long before,
@@ -36,12 +33,33 @@ public class ShipController {
             @RequestParam(value = "maxSpeed", required = false) Double maxSpeed,
             @RequestParam(value = "minCrewSize", required = false) Integer minCrewSize,
             @RequestParam(value = "maxCrewSize", required = false) Integer maxCrewSize,
-            @RequestParam(value = "minRating", required = false) Integer minRating,
-            @RequestParam(value = "maxRating", required = false) Integer maxRating) {
+            @RequestParam(value = "minRating", required = false) Double minRating,
+            @RequestParam(value = "maxRating", required = false) Double maxRating,
+            @RequestParam(value = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "3") Integer pageSize,
+            @RequestParam(value = "order", required = false, defaultValue = "ID") ShipOrder shipOrder) {
         Page<Ship> shipList = this.shipService.getAllShips(name, planet, shipType, after, before,
                 isUsed, minSpeed, maxSpeed, minCrewSize, maxCrewSize, minRating, maxRating,
                 pageNumber, pageSize, Sort.by(Sort.Direction.ASC, shipOrder.getFieldName()));
         return new ResponseEntity<>(shipList.getContent(), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/count", method = RequestMethod.GET)
+    public Integer getShipCount(
+            @RequestParam(required = false) String name,
+            @RequestParam(required = false) String planet,
+            @RequestParam(required = false) ShipType shipType,
+            @RequestParam(required = false) Long after,
+            @RequestParam(required = false) Long before,
+            @RequestParam(required = false) Boolean isUsed,
+            @RequestParam(required = false) Double minSpeed,
+            @RequestParam(required = false) Double maxSpeed,
+            @RequestParam(required = false) Integer minCrewSize,
+            @RequestParam(required = false) Integer maxCrewSize,
+            @RequestParam(required = false) Double minRating,
+            @RequestParam(required = false) Double maxRating) {
+        return this.shipService.getShipCount(name, planet, shipType, after, before, isUsed, minSpeed, maxSpeed,
+                minCrewSize, maxCrewSize, minRating, maxRating);
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
@@ -67,11 +85,6 @@ public class ShipController {
         }
         this.shipService.deleteShipById(shipId);
         return new ResponseEntity<>(HttpStatus.OK);
-    }
-
-    @RequestMapping(value = "/count", method = RequestMethod.GET)
-    public Integer getShipCount() {
-        return this.shipService.getShipCount();
     }
 
     @RequestMapping(value = "", method = RequestMethod.POST, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)

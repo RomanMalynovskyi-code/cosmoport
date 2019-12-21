@@ -11,6 +11,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.util.*;
@@ -32,14 +33,38 @@ public class ShipServiceImpl implements ShipService {
     }
 
     @Override
-    public Integer getShipCount() {
-        return Math.toIntExact(shipRepository.count());
+    public Integer getShipCount(String name, String planet, ShipType shipType, Long after, Long before,
+                                Boolean isUsed, Double minSpeed, Double maxSpeed,
+                                Integer minCrewSize, Integer maxCrewSize, Double minRating, Double maxRating) {
+        return Math.toIntExact(shipRepository.count(Specification.where(new Specification<Ship>() {
+            @Override
+            public Predicate toPredicate(Root<Ship> root, CriteriaQuery<?> query, CriteriaBuilder cb) {
+                Predicate predicate = cb.conjunction();
+                if (!StringUtils.isEmpty(name)) {
+                    predicate = cb.and(predicate, cb.like(root.get("name"), "%" + name + "%"));
+                }
+                if (!StringUtils.isEmpty(planet)) {
+                    predicate = cb.and(predicate, cb.like(root.get("planet"), "%" + planet + "%"));
+                }
+                if (Objects.nonNull(shipType)) {
+                    predicate = cb.and(predicate, cb.equal(root.get("shipType"), shipType));
+                }
+                if (Objects.nonNull(isUsed)) {
+                    predicate = cb.and(predicate, cb.equal(root.get("isUsed"), isUsed));
+                }
+                predicate = getPredicateDateAfterAndDateBefore(after, before, root, cb, predicate);
+                predicate = getPredicateMinAndMaxSpeed(minSpeed, maxSpeed, root, cb, predicate);
+                predicate = getPredicateMinAndMaxCrewSize(minCrewSize, maxCrewSize, root, cb, predicate);
+                predicate = getPredicateMinAndMaxRating(minRating, maxRating, root, cb, predicate);
+                return predicate;
+            }
+        })));
     }
 
     @Override
     public Page<Ship> getAllShips(String name, String planet, ShipType shipType, Long after, Long before,
                                   Boolean isUsed, Double minSpeed, Double maxSpeed, Integer minCrewSize, Integer maxCrewSize,
-                                  Integer minRating, Integer maxRating,
+                                  Double minRating, Double maxRating,
                                   Integer pageNumber, Integer pageSize, Sort sort) {
         return shipRepository.findAll(Specification.where((Specification<Ship>) (root, query, cb) -> {
             Predicate predicate = cb.conjunction();
@@ -52,15 +77,12 @@ public class ShipServiceImpl implements ShipService {
             if (Objects.nonNull(shipType)) {
                 predicate = cb.and(predicate, cb.equal(root.get("shipType"), shipType));
             }
-            predicate = getPredicateDateAfterAndDateBefore(after, before, root, cb, predicate);
             if (Objects.nonNull(isUsed)) {
                 predicate = cb.and(predicate, cb.equal(root.get("isUsed"), isUsed));
             }
+            predicate = getPredicateDateAfterAndDateBefore(after, before, root, cb, predicate);
             predicate = getPredicateMinAndMaxSpeed(minSpeed, maxSpeed, root, cb, predicate);
-            if (Objects.nonNull(minCrewSize) && Objects.nonNull(maxCrewSize)) {
-                predicate = cb.and(predicate, cb.greaterThanOrEqualTo(root.get("crewSize"), minCrewSize),
-                        cb.lessThan(root.get("crewSize"), maxCrewSize));
-            }
+            predicate = getPredicateMinAndMaxCrewSize(minCrewSize, maxCrewSize, root, cb, predicate);
             predicate = getPredicateMinAndMaxRating(minRating, maxRating, root, cb, predicate);
             return predicate;
         }), PageRequest.of(pageNumber, pageSize, sort));
@@ -72,16 +94,24 @@ public class ShipServiceImpl implements ShipService {
             Date beforeDate = new Date(before);
             predicate = cb.and(predicate, cb.greaterThanOrEqualTo(root.get("prodDate"), afterDate),
                     cb.lessThan(root.get("prodDate"), beforeDate));
+        } else if (Objects.isNull(after) && Objects.nonNull(before)) {
+            Date beforeDate = new Date(before);
+            predicate = cb.and(predicate, cb.lessThan(root.get("prodDate"), beforeDate));
+        } else if (Objects.nonNull(after)) {
+            Date afterDate = new Date(after);
+            predicate = cb.and(predicate, cb.greaterThanOrEqualTo(root.get("prodDate"), afterDate));
         }
         return predicate;
     }
 
-    public Predicate getPredicateMinAndMaxRating(Integer minRating, Integer maxRating, Root<Ship> root, CriteriaBuilder cb, Predicate predicate) {
+    public Predicate getPredicateMinAndMaxRating(Double minRating, Double maxRating, Root<Ship> root, CriteriaBuilder cb, Predicate predicate) {
         if (Objects.nonNull(minRating) && Objects.nonNull(maxRating)) {
             predicate = cb.and(predicate, cb.greaterThanOrEqualTo(root.get("rating"), minRating),
                     cb.lessThan(root.get("rating"), maxRating));
         } else if (Objects.isNull(minRating) && Objects.nonNull(maxRating)) {
             predicate = cb.and(predicate, cb.lessThan(root.get("rating"), maxRating));
+        } else if (Objects.nonNull(minRating)) {
+            predicate = cb.and(predicate, cb.greaterThanOrEqualTo(root.get("rating"), minRating));
         }
         return predicate;
     }
@@ -92,6 +122,20 @@ public class ShipServiceImpl implements ShipService {
                     cb.lessThan(root.get("speed"), maxSpeed));
         } else if (Objects.isNull(minSpeed) && Objects.nonNull(maxSpeed)) {
             predicate = cb.and(predicate, cb.lessThan(root.get("speed"), maxSpeed));
+        } else if (Objects.nonNull(minSpeed)) {
+            predicate = cb.and(predicate, cb.greaterThanOrEqualTo(root.get("speed"), minSpeed));
+        }
+        return predicate;
+    }
+
+    public Predicate getPredicateMinAndMaxCrewSize(Integer minCrewSize, Integer maxCrewSize, Root<Ship> root, CriteriaBuilder cb, Predicate predicate) {
+        if (Objects.nonNull(minCrewSize) && Objects.nonNull(maxCrewSize)) {
+            predicate = cb.and(predicate, cb.greaterThanOrEqualTo(root.get("crewSize"), minCrewSize),
+                    cb.lessThan(root.get("crewSize"), maxCrewSize));
+        } else if (Objects.isNull(minCrewSize) && Objects.nonNull(maxCrewSize)) {
+            predicate = cb.and(predicate, cb.lessThan(root.get("crewSize"), maxCrewSize));
+        } else if (Objects.nonNull(minCrewSize)) {
+            predicate = cb.and(predicate, cb.greaterThanOrEqualTo(root.get("crewSize"), minCrewSize));
         }
         return predicate;
     }
