@@ -1,6 +1,7 @@
 package com.space.controller;
 
 import com.space.model.Ship;
+import com.space.model.ShipType;
 import com.space.service.ShipService;
 import com.space.service.ShipServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -19,30 +21,13 @@ public class ShipController {
     @Autowired
     ShipService shipService;
 
-    /* @RequestMapping(value = "", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-     public ResponseEntity<List<Ship>> getAllShips() {
-         List<Ship> shipList = this.shipService.getAllShips();
-         if (shipList == null) {
-             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-         }
-         return new ResponseEntity<>(shipList, HttpStatus.OK);
-     }*/
-   /* @RequestMapping(value = "", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-    public Page<Ship> getAllShips(
-            @RequestParam(value = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
-            @RequestParam(value = "pageSize", required = false, defaultValue = "3") Integer pageSize,
-            @RequestParam(value = "shipOrder", required = false, defaultValue = "id") ShipOrder shipOrder) {
-        Page<Ship> shipList = this.shipService.getAllShips(pageNumber, pageSize, Sort.by(shipOrder.name()));
-        *//* if (shipList == null) {
-            return new ResponseEntity<Void>(HttpStatus.NOT_FOUND);
-        }
-        return new ResponseEntity<>(shipList, HttpStatus.OK);*//*
-        return shipList;
-    }*/
     @RequestMapping(value = "", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public ResponseEntity<List<Ship>> getAllShips(
-            /*@RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "planet", required = false) String planet,
+            @RequestParam(value = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
+            @RequestParam(value = "pageSize", required = false, defaultValue = "3") Integer pageSize,
+            @RequestParam(value = "order", required = false, defaultValue = "ID") ShipOrder shipOrder,
             @RequestParam(value = "shipType", required = false) ShipType shipType,
             @RequestParam(value = "after", required = false) Long after,
             @RequestParam(value = "before", required = false) Long before,
@@ -52,12 +37,10 @@ public class ShipController {
             @RequestParam(value = "minCrewSize", required = false) Integer minCrewSize,
             @RequestParam(value = "maxCrewSize", required = false) Integer maxCrewSize,
             @RequestParam(value = "minRating", required = false) Integer minRating,
-            @RequestParam(value = "maxRating", required = false) Integer maxRating,*/
-            @RequestParam(value = "pageNumber", required = false, defaultValue = "0") Integer pageNumber,
-            @RequestParam(value = "pageSize", required = false, defaultValue = "3") Integer pageSize,
-            @RequestParam(value = "order", required = false, defaultValue = "ID") ShipOrder shipOrder) {
-        Page<Ship> shipList = this.shipService.getAllShips(pageNumber, pageSize,
-                Sort.by(Sort.Direction.ASC, shipOrder.getFieldName()));
+            @RequestParam(value = "maxRating", required = false) Integer maxRating) {
+        Page<Ship> shipList = this.shipService.getAllShips(name, planet, shipType, after, before,
+                isUsed, minSpeed, maxSpeed, minCrewSize, maxCrewSize, minRating, maxRating,
+                pageNumber, pageSize, Sort.by(Sort.Direction.ASC, shipOrder.getFieldName()));
         return new ResponseEntity<>(shipList.getContent(), HttpStatus.OK);
     }
 

@@ -3,12 +3,13 @@ package com.space.model;
 import javax.persistence.*;
 import javax.persistence.Entity;
 import javax.persistence.Table;
+import java.io.Serializable;
 import java.util.Calendar;
 import java.util.Date;
 
 @Table(name = "ship")
 @Entity
-public class Ship {
+public class Ship implements Serializable {
     public static final Integer CURRENT_YEAR = 3019;
 
     public Ship() {
